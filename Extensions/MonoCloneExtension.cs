@@ -326,6 +326,7 @@ namespace Mono.Cecil
             var start = scope.Start.IsEndOfMethod ? null : offsetMap[scope.Start.Offset];
             var end = scope.End.IsEndOfMethod ? null : offsetMap[scope.End.Offset];
             var clonedScope = new ScopeDebugInformation(start, end);
+            clonedScope.Import = scope.Import;
             foreach (var constant in scope.Constants)
             {
                 clonedScope.Constants.Add(constant);
