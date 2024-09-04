@@ -73,6 +73,7 @@ namespace Mono.Cecil
                     var returnType = method.ReturnType.Resolve() == typeDef ? (TypeReference)map[typeDef] : method.ReturnType;
                     var clonedMethod = new MethodDefinition(method.Name, method.Attributes, returnType);
                     clonedTypeDef.Methods.Add(clonedMethod);
+                    clonedMethod.DeclaringType = clonedTypeDef;
 
                     methodMap[method] = clonedMethod;
                     map[method] = clonedMethod;
@@ -113,6 +114,7 @@ namespace Mono.Cecil
 
             var clonedMethodDef = new MethodDefinition(methodName, methodAttributes, methodDef.ReturnType);
 
+            clonedMethodDef.DeclaringType = methodDef.DeclaringType;
             methodDef.Clone(clonedMethodDef, map, false, cloneBody);
             clonedMethodDef.Attributes &= ~MethodAttributes.Virtual;
 
@@ -166,7 +168,7 @@ namespace Mono.Cecil
                 foreach (var variable in methodDef.Body.Variables)
                 {
                     var variableType = variable.VariableType;
-                    if (variableType.Resolve() == methodDef.DeclaringType)
+                    if (variableType.Resolve() == methodDef.DeclaringType && methodDef.DeclaringType != clonedMethodDef.DeclaringType)
                     {
                         variableType = (TypeReference)map[clonedMethodDef.DeclaringType];
                     }
