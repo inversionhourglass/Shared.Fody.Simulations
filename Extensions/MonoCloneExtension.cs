@@ -208,7 +208,8 @@ namespace Mono.Cecil
                 }
                 else if (operand is MethodReference mr)
                 {
-                    if (map.TryGetValue(mr.Resolve(), out var mdObj))
+                    var mdd = mr.Resolve();
+                    if (mdd != null && map.TryGetValue(mdd, out var mdObj))
                     {
                         if (!map.TryGetValue(mr.DeclaringType.Resolve(), out var trObj)) throw new NotImplementedException("MonoCloneExtensions -> MethodDefinition -> MethodReference");
 
