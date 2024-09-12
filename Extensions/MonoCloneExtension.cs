@@ -256,7 +256,7 @@ namespace Mono.Cecil
                     TryStart = instructionMap[handler.TryStart],
                     TryEnd = instructionMap[handler.TryEnd],
                     HandlerStart = instructionMap[handler.HandlerStart],
-                    HandlerEnd = instructionMap[handler.HandlerEnd]
+                    HandlerEnd = handler.HandlerEnd == null ? null : instructionMap[handler.HandlerEnd]
                 });
             }
 
