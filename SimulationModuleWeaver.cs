@@ -115,6 +115,19 @@ namespace Fody
             return ModuleDefinition.ImportReference(FindTypeDefinition(fullName));
         }
 
+        protected virtual string GetConfigValue(string defaultValue, params string[] configKeys)
+        {
+            if (Config == null) return defaultValue;
+
+            foreach (var configKey in configKeys)
+            {
+                var configAttribute = Config.Attributes(configKey).SingleOrDefault();
+                if (configAttribute != null) return configAttribute.Value;
+            }
+
+            return defaultValue;
+        }
+
         public override IEnumerable<string> GetAssembliesForScanning()
         {
             yield return "netstandard";
