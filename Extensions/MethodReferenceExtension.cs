@@ -8,6 +8,8 @@ namespace Mono.Cecil
 {
     public static class MethodReferenceExtension
     {
+        public static MethodDefinition ToDefinition(this MethodReference methodRef) => methodRef is MethodDefinition methodDef ? methodDef : methodRef.Resolve();
+
         public static VariableDefinition CreateVariable(this MethodBody body, TypeReference variableTypeReference)
         {
             var variable = new VariableDefinition(variableTypeReference);
@@ -63,6 +65,15 @@ namespace Mono.Cecil
             if (stateMachineAttr == null) return false;
             var obj = stateMachineAttr.ConstructorArguments[0].Value;
             stateMachineTypeDef = obj as TypeDefinition ?? ((TypeReference)obj).Resolve();
+            return true;
+        }
+
+        public static bool TryResolveStateMachine(this MethodReference methodRef, out TypeDefinition? stateMachineTypeDef)
+        {
+            stateMachineTypeDef = null;
+            var attribute = methodRef.ToDefinition().CustomAttributes.FirstOrDefault(attr => attr.AttributeType.Inherit(Constants.TYPE_StateMachineAttribute));
+            if (attribute == null) return false;
+            stateMachineTypeDef = ((TypeReference)attribute.ConstructorArguments[0].Value).ToDefinition();
             return true;
         }
 

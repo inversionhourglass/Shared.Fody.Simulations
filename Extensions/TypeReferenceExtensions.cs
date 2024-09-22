@@ -7,6 +7,8 @@ namespace Mono.Cecil
 {
     public static class TypeReferenceExtensions
     {
+        public static TypeDefinition ToDefinition(this TypeReference typeRef) => typeRef is TypeDefinition typeDef ? typeDef : typeRef.Resolve();
+
         public static TypeReference MakeReference(this TypeDefinition typeDef)
         {
             if (!typeDef.HasGenericParameters) return typeDef;
