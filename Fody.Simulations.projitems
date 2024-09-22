@@ -12,6 +12,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Constants.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\CollectionExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\CommonExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\CustomAttributeExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ImportExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\InstructionExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\LoadValueExtensions.cs" />
