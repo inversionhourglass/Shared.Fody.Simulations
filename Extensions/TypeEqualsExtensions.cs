@@ -100,6 +100,11 @@ namespace Mono.Cecil
             return typeRef.Is(Constants.TYPE_Void);
         }
 
+        public static bool IsBool(this TypeReference typeRef)
+        {
+            return typeRef.Is(typeof(bool).FullName);
+        }
+
         public static bool IsString(this TypeReference typeRef)
         {
             return typeRef.Resolve().FullName == typeof(string).FullName;

@@ -313,5 +313,16 @@ namespace Mono.Cecil
                     throw new FodyWeavingException($"Instruction is not a ldloc or stloc operation, its opcode is {instruction.OpCode} and the offset is {instruction.Offset} in method {methodDef}");
             }
         }
+
+        public static Instruction Stloc2Ldloc(this Instruction instruction) => instruction.OpCode.Code switch
+        {
+            Code.Stloc_0 => Instruction.Create(OpCodes.Ldloc_0),
+            Code.Stloc_1 => Instruction.Create(OpCodes.Ldloc_1),
+            Code.Stloc_2 => Instruction.Create(OpCodes.Ldloc_2),
+            Code.Stloc_3 => Instruction.Create(OpCodes.Ldloc_3),
+            Code.Stloc_S => Instruction.Create(OpCodes.Ldloc_S, (VariableDefinition)instruction.Operand),
+            Code.Stloc => Instruction.Create(OpCodes.Ldloc, (VariableDefinition)instruction.Operand),
+            _ => throw new FodyWeavingException($"Instruction is not a stloc operation, its opcode is {instruction.OpCode} and the offset is {instruction.Offset}")
+        };
     }
 }
