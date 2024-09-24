@@ -314,6 +314,17 @@ namespace Mono.Cecil
             }
         }
 
+        public static bool IsLdloc(this Instruction instruction) => instruction.OpCode.Code switch
+        {
+            Code.Ldloc_0 => true,
+            Code.Ldloc_1 => true,
+            Code.Ldloc_2 => true,
+            Code.Ldloc_3 => true,
+            Code.Ldloc_S => true,
+            Code.Ldloc => true,
+            _ => false
+        };
+
         public static Instruction Stloc2Ldloc(this Instruction instruction) => instruction.OpCode.Code switch
         {
             Code.Stloc_0 => Instruction.Create(OpCodes.Ldloc_0),
@@ -324,5 +335,7 @@ namespace Mono.Cecil
             Code.Stloc => Instruction.Create(OpCodes.Ldloc, (VariableDefinition)instruction.Operand),
             _ => throw new FodyWeavingException($"Instruction is not a stloc operation, its opcode is {instruction.OpCode} and the offset is {instruction.Offset}")
         };
+
+        public static bool IsEqual(this Instruction instruction1, Instruction instruction2) => instruction1.OpCode.Code == instruction2.OpCode.Code && instruction1.Operand == instruction2.Operand;
     }
 }
