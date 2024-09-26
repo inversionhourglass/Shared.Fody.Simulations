@@ -115,6 +115,11 @@ namespace Mono.Cecil
             var clonedMethodDef = new MethodDefinition(methodName, methodAttributes, methodDef.ReturnType);
 
             clonedMethodDef.DeclaringType = methodDef.DeclaringType;
+            map ??= [];
+            if (!map.ContainsKey(clonedMethodDef.DeclaringType))
+            {
+                map[clonedMethodDef.DeclaringType] = clonedMethodDef.DeclaringType;
+            }
             methodDef.Clone(clonedMethodDef, map, false, cloneBody);
             clonedMethodDef.Attributes &= ~MethodAttributes.Virtual;
 
@@ -216,7 +221,7 @@ namespace Mono.Cecil
                         var md = (MethodDefinition)mdObj;
                         cloned.Operand = md.WithGenericDeclaringType((TypeReference)trObj);
                     }
-                    else if (mr is GenericInstanceMethod gim && gim.GenericArguments.Any(x => x.Resolve() == methodDef.DeclaringType))
+                    else if (mr is GenericInstanceMethod gim && gim.GenericArguments.Any(x => x.Resolve() == methodDef.DeclaringType) && clonedMethodDef.DeclaringType != methodDef.DeclaringType)
                     {
                         var tr = (TypeReference)map[clonedMethodDef.DeclaringType];
                         var generics = gim.GenericArguments.Select(x => x.Resolve() == methodDef.DeclaringType ? tr : x).ToArray();
@@ -263,7 +268,7 @@ namespace Mono.Cecil
             clonedMethodDef.Body.InitLocals = methodDef.Body.InitLocals;
             clonedMethodDef.Body.MaxStackSize = methodDef.Body.MaxStackSize;
 
-            clonedMethodDef.DebugInformation = (MethodDebugInformation)_CtorMethodDebugInformation.Invoke(new object[] { clonedMethodDef });
+            clonedMethodDef.DebugInformation = (MethodDebugInformation)_CtorMethodDebugInformation.Invoke([clonedMethodDef]);
             foreach (var point in methodDef.DebugInformation.SequencePoints)
             {
                 var clonedPoint = new SequencePoint(offsetMap[point.Offset], point.Document)
