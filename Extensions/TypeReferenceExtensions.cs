@@ -9,6 +9,11 @@ namespace Mono.Cecil
     {
         public static TypeDefinition ToDefinition(this TypeReference typeRef) => typeRef is TypeDefinition typeDef ? typeDef : typeRef.Resolve();
 
+        public static bool StrictEqual(this TypeReference typeRef1, TypeReference typeRef2)
+        {
+            return typeRef1.Scope.ToString() == typeRef2.Scope.ToString() && typeRef1.FullName == typeRef2.FullName;
+        }
+
         public static TypeReference MakeReference(this TypeDefinition typeDef)
         {
             if (!typeDef.HasGenericParameters) return typeDef;
