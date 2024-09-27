@@ -307,6 +307,8 @@ namespace Mono.Cecil
                 case Code.Stloc:
                 case Code.Stloc_S:
                 case Code.Ldloc:
+                case Code.Ldloc_S:
+                case Code.Ldloca:
                 case Code.Ldloca_S:
                     return (VariableDefinition)instruction.Operand;
                 default:
