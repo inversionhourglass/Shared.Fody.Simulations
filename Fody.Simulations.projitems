@@ -13,6 +13,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\CollectionExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\CommonExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\CustomAttributeExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\FieldReferenceExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ImportExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\InstructionExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\LoadValueExtensions.cs" />
@@ -24,6 +25,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\TypeReferenceExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FodyAggregateWeavingException.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FodyWeavingException.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Instructions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SimulationModuleWeaver.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Simulations\ArgumentSimulation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Simulations\EmptyHost.cs" />
