@@ -1,5 +1,6 @@
 ﻿using Fody;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace Mono.Cecil
 {
@@ -93,37 +94,52 @@ namespace Mono.Cecil
 
         #region Fast Check
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsObject(this TypeReference typeRef) => typeRef.Is(typeof(object).FullName);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsVoid(this TypeReference typeRef)
         {
             return typeRef.Is(Constants.TYPE_Void);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsBool(this TypeReference typeRef)
         {
             return typeRef.Is(typeof(bool).FullName);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsInt32(this TypeReference typeRef)
+        {
+            return typeRef.Is(typeof(int).FullName);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsString(this TypeReference typeRef)
         {
             return typeRef.Resolve().FullName == typeof(string).FullName;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsTask(this TypeReference typeRef)
         {
             return typeRef.Is(Constants.TYPE_Task);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsGenericTask(this TypeReference typeRef) => typeRef.IsGeneric(Constants.TYPE_Task, 1);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsValueTask(this TypeReference typeRef)
         {
             return typeRef.Is(Constants.TYPE_ValueTask);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsGenericValueTask(this TypeReference typeRef) => typeRef.IsGeneric(Constants.TYPE_ValueTask, 1);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsDelegate(this TypeReference typeRef)
         {
             return typeRef.Inherit(Constants.TYPE_MulticastDelegate);
