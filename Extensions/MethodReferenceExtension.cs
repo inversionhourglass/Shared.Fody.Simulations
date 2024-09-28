@@ -69,12 +69,12 @@ namespace Mono.Cecil
             return true;
         }
 
-        public static bool TryResolveStateMachine(this MethodReference methodRef, out TypeDefinition? stateMachineTypeDef)
+        public static bool TryResolveStateMachine(this MethodReference methodRef, out TypeDefinition? stateMachineTypeDef, out CustomAttribute stateMachineAttribute)
         {
             stateMachineTypeDef = null;
-            var attribute = methodRef.ToDefinition().CustomAttributes.FirstOrDefault(attr => attr.AttributeType.Inherit(Constants.TYPE_StateMachineAttribute));
-            if (attribute == null) return false;
-            stateMachineTypeDef = ((TypeReference)attribute.ConstructorArguments[0].Value).ToDefinition();
+            stateMachineAttribute = methodRef.ToDefinition().CustomAttributes.FirstOrDefault(attr => attr.AttributeType.Inherit(Constants.TYPE_StateMachineAttribute));
+            if (stateMachineAttribute == null) return false;
+            stateMachineTypeDef = ((TypeReference)stateMachineAttribute.ConstructorArguments[0].Value).ToDefinition();
             return true;
         }
 
