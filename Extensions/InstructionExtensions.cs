@@ -193,9 +193,15 @@ namespace Mono.Cecil
             return typeRef != null && typeRef.Implement(@interface);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsLdfld(this Instruction instruction) => instruction.OpCode.Code == Code.Ldfld;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsStfld(this Instruction instruction) => instruction.OpCode.Code == Code.Stfld;
+
         public static bool IsStfld(this Instruction instruction, string fieldName, string fieldType)
         {
-            if (instruction.OpCode != OpCodes.Stfld) return false;
+            if (!instruction.IsStfld()) return false;
 
             var def = instruction.Operand as FieldDefinition;
             if (def == null && instruction.Operand is FieldReference @ref)
@@ -204,6 +210,13 @@ namespace Mono.Cecil
             }
 
             return def != null && def.Name == fieldName && def.FieldType.Is(fieldType);
+        }
+
+        public static Instruction Stfld2Ldfld(this Instruction instruction)
+        {
+            if (instruction.OpCode.Code != Code.Stfld) throw new FodyWeavingException($"Cannot create ldfld from opcode {instruction.OpCode.Code}");
+
+            return Instruction.Create(OpCodes.Ldfld, (FieldReference)instruction.Operand);
         }
 
         public static bool IsCallAny(this Instruction instruction, string methodName)
@@ -286,7 +299,7 @@ namespace Mono.Cecil
             return instruction;
         }
 
-        public static VariableDefinition ResolveVariable(this Instruction instruction, MethodDefinition methodDef)
+        public static bool TryResolveVariable(this Instruction instruction, MethodDefinition methodDef, out VariableDefinition? variable)
         {
             var variables = methodDef.Body.Variables;
 
@@ -294,25 +307,29 @@ namespace Mono.Cecil
             {
                 case Code.Stloc_0:
                 case Code.Ldloc_0:
-                    return variables[0];
+                    variable = variables[0];
+                    return true;
                 case Code.Stloc_1:
                 case Code.Ldloc_1:
-                    return variables[1];
+                    variable = variables[1];
+                    return true;
                 case Code.Stloc_2:
                 case Code.Ldloc_2:
-                    return variables[2];
+                    variable = variables[2];
+                    return true;
                 case Code.Stloc_3:
                 case Code.Ldloc_3:
-                    return variables[3];
+                    variable = variables[3];
+                    return true;
                 case Code.Stloc:
                 case Code.Stloc_S:
                 case Code.Ldloc:
                 case Code.Ldloc_S:
-                case Code.Ldloca:
-                case Code.Ldloca_S:
-                    return (VariableDefinition)instruction.Operand;
+                    variable = (VariableDefinition)instruction.Operand;
+                    return true;
                 default:
-                    throw new FodyWeavingException($"Instruction is not a ldloc or stloc operation, its opcode is {instruction.OpCode} and the offset is {instruction.Offset} in method {methodDef}");
+                    variable = null;
+                    return false;
             }
         }
 
@@ -327,6 +344,17 @@ namespace Mono.Cecil
             _ => false
         };
 
+        public static bool IsStloc(this Instruction instruction) => instruction.OpCode.Code switch
+        {
+            Code.Stloc_0 => true,
+            Code.Stloc_1 => true,
+            Code.Stloc_2 => true,
+            Code.Stloc_3 => true,
+            Code.Stloc_S => true,
+            Code.Stloc => true,
+            _ => false
+        };
+
         public static Instruction Stloc2Ldloc(this Instruction instruction) => instruction.OpCode.Code switch
         {
             Code.Stloc_0 => Instruction.Create(OpCodes.Ldloc_0),
@@ -338,6 +366,31 @@ namespace Mono.Cecil
             _ => throw new FodyWeavingException($"Instruction is not a stloc operation, its opcode is {instruction.OpCode} and the offset is {instruction.Offset}")
         };
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsDup(this Instruction instruction) => instruction.OpCode.Code == Code.Dup;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsLdarg0(this Instruction instruction) => instruction.OpCode.Code == Code.Ldarg_0;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsLdcM1(this Instruction instruction) => instruction.OpCode.Code == Code.Ldc_I4_M1;
+
         public static bool IsEqual(this Instruction instruction1, Instruction instruction2) => instruction1.OpCode.Code == instruction2.OpCode.Code && instruction1.Operand == instruction2.Operand;
+
+        public static Instructions SetFirstToCloned(this Instruction instruction, Instructions instructions)
+        {
+            var firstInstruction = instructions[0];
+            var count = instructions.Count;
+            var cloned = new Instruction[count];
+
+            cloned[0] = instruction.Set(firstInstruction.OpCode, firstInstruction.Operand);
+
+            for (var i = 1; i < count; i++)
+            {
+                cloned[i] = instructions[i].Clone();
+            }
+
+            return new(cloned);
+        }
     }
 }
