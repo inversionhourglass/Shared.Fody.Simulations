@@ -229,7 +229,18 @@ namespace Mono.Cecil
             var methodDef = methodRef.ToDefinition();
 
             var outerHandler = methodDef.GetOuterExceptionHandler();
-            if (outerHandler != null && outerHandler.HandlerType == handlerType && IsOuterMostExceptionHandler(methodDef, outerHandler)) return outerHandler;
+            if (outerHandler != null && outerHandler.HandlerType == handlerType && IsOuterMostExceptionHandler(methodDef, outerHandler))
+            {
+                if (outerHandler.HandlerStart.OpCode.Code == Code.Endfinally)
+                {
+                    var endFianlly = outerHandler.HandlerStart;
+                    var nop = Instruction.Create(OpCodes.Nop);
+                    methodDef.Body.Instructions.InsertBefore(endFianlly, nop);
+                    outerHandler.TryEnd = nop;
+                    outerHandler.HandlerStart = nop;
+                }
+                return outerHandler;
+            }
 
             var returnBlock = methodDef.MergeReturnToLeave();
             var tryStart = methodDef.GetFirstInstruction();
