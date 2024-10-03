@@ -260,6 +260,7 @@ namespace Mono.Cecil
                     CatchType = catchType,
                     TryStart = instructionMap[handler.TryStart],
                     TryEnd = instructionMap[handler.TryEnd],
+                    FilterStart = handler.FilterStart == null ? null : instructionMap[handler.FilterStart],
                     HandlerStart = instructionMap[handler.HandlerStart],
                     HandlerEnd = handler.HandlerEnd == null ? null : instructionMap[handler.HandlerEnd]
                 });
