@@ -82,7 +82,7 @@ namespace Fody
                 }
                 else
                 {
-                    WriteError(e.Message, methodDef);
+                    WriteError($"[{methodDef}] {e.Message}", methodDef);
                 }
             }
         }
