@@ -1,14 +1,33 @@
 ﻿using Fody;
 using Mono.Cecil.Cil;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using BindingFlags = System.Reflection.BindingFlags;
 
 namespace Mono.Cecil
 {
     public static class MethodReferenceExtension
     {
+        private static readonly Lazy<Func<SequencePoint, InstructionOffset>> _SequencePointGetOffset = new(() =>
+        {
+            var parameter = Expression.Parameter(typeof(SequencePoint), "sequencePoint");
+            var field = typeof(SequencePoint).GetField("offset", BindingFlags.NonPublic | BindingFlags.Instance);
+            var fieldAccess = Expression.Field(parameter, field);
+            var lambda = Expression.Lambda<Func<SequencePoint, InstructionOffset>>(fieldAccess, parameter);
+            return lambda.Compile();
+        });
+        private static readonly Lazy<Func<InstructionOffset, Instruction>> _InstructionOffsetGetInstruction = new(() =>
+        {
+            var parameter = Expression.Parameter(typeof(InstructionOffset), "instructionOffset");
+            var field = typeof(InstructionOffset).GetField("instruction", BindingFlags.NonPublic | BindingFlags.Instance);
+            var fieldAccess = Expression.Field(parameter, field);
+            var lambda = Expression.Lambda<Func<InstructionOffset, Instruction>>(fieldAccess, parameter);
+            return lambda.Compile();
+        });
+
         public static MethodDefinition ToDefinition(this MethodReference methodRef) => methodRef is MethodDefinition methodDef ? methodDef : methodRef.Resolve();
 
         public static VariableDefinition CreateVariable(this MethodBody body, TypeReference variableTypeReference)
@@ -269,6 +288,9 @@ namespace Mono.Cecil
             };
             methodDef.Body.ExceptionHandlers.Add(handler);
 
+            methodDef.UpdateDebugInfoLastSequencePoint();
+            methodDef.SkipExceptionHandlerBlockSequencePoint(handler);
+
             return handler;
         }
 
@@ -293,6 +315,66 @@ namespace Mono.Cecil
             } while ((instruction = instruction.Next) != null);
 
             return returned;
+        }
+
+        public static void UpdateDebugInfoLastSequencePoint(this MethodDefinition methodDef)
+        {
+            if (methodDef.DebugInformation == null || methodDef.DebugInformation.SequencePoints.Count == 0) return;
+
+            var sequencePoints = methodDef.DebugInformation.SequencePoints;
+            var lastSequencePoint = sequencePoints.Last();
+            var lastInstruction = methodDef.Body.Instructions.Last();
+            if (lastSequencePoint.Offset == lastInstruction.Offset) return;
+            sequencePoints[sequencePoints.Count - 1] = new(lastInstruction, lastSequencePoint.Document)
+            {
+                StartLine = lastSequencePoint.StartLine,
+                StartColumn = lastSequencePoint.StartColumn,
+                EndLine = lastSequencePoint.EndLine,
+                EndColumn = lastSequencePoint.EndColumn
+            };
+        }
+
+        public static void SkipExceptionHandlerBlockSequencePoint(this MethodDefinition methodDef, ExceptionHandler exceptionHandler)
+        {
+            if (methodDef.DebugInformation == null || methodDef.DebugInformation.SequencePoints.Count == 0) return;
+
+            var sequencePoints = methodDef.DebugInformation.SequencePoints;
+            var lastSequencePoint = sequencePoints.Last();
+
+            var index = 0;
+            var instructions = methodDef.Body.Instructions;
+            SequencePoint? beforeThis = null;
+            foreach (var point in sequencePoints)
+            {
+                var pointOffset = _SequencePointGetOffset.Value(point);
+                var pointInstruction = _InstructionOffsetGetInstruction.Value(pointOffset);
+                Instruction? instruction = null;
+                while (index < instructions.Count && (instruction = instructions[index++]) != pointInstruction)
+                {
+                    if (instruction == exceptionHandler.TryEnd)
+                    {
+                        beforeThis = point;
+                        break;
+                    }
+                }
+                if (beforeThis != null || index >= instructions.Count) break;
+                if (instruction == exceptionHandler.TryEnd) return;
+            }
+            var sequencePoint = new SequencePoint(exceptionHandler.TryEnd, lastSequencePoint.Document)
+            {
+                StartLine = 0xFEEFEE,
+                EndLine = 0xFEEFEE,
+                StartColumn = 0,
+                EndColumn = 0
+            };
+            if (beforeThis == null)
+            {
+                sequencePoints.Add(sequencePoint);
+            }
+            else
+            {
+                sequencePoints.InsertBefore(beforeThis, sequencePoint);
+            }
         }
 
         #region Import
