@@ -248,12 +248,13 @@ namespace Mono.Cecil
             var handlerEnd = returnBlock[0];
 
             var instructions = methodDef.Body.Instructions;
-            instructions.Add(tryEnd);
-            if (handlerType == ExceptionHandlerType.Catch)
+            var lastInstruction = instructions.Last();
+            if (lastInstruction.OpCode.Code != Code.Leave && lastInstruction.OpCode.Code != Code.Leave_S || lastInstruction.Operand is not Instruction instruction || instruction != handlerEnd)
             {
                 instructions.Add(Instruction.Create(OpCodes.Leave, handlerEnd));
             }
-            else if (handlerType == ExceptionHandlerType.Finally)
+            instructions.Add(tryEnd);
+            if (handlerType == ExceptionHandlerType.Finally)
             {
                 instructions.Add(Instruction.Create(OpCodes.Endfinally));
             }
