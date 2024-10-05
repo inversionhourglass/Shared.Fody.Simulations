@@ -30,6 +30,8 @@
         public const string TYPE_IteratorStateMachineAttribute = "System.Runtime.CompilerServices.IteratorStateMachineAttribute";
         public const string TYPE_AsyncIteratorStateMachineAttribute = "System.Runtime.CompilerServices.AsyncIteratorStateMachineAttribute";
         public const string TYPE_AsyncMethodBuilderAttribute = "System.Runtime.CompilerServices.AsyncMethodBuilderAttribute";
+        public const string TYPE_IAsyncStateMachine = "System.Runtime.CompilerServices.IAsyncStateMachine";
+        public const string TYPE_IEnumerator = "System.Collections.IEnumerator";
 
         public const string TYPE_ARRAY_Type = "System.Type[]";
 
