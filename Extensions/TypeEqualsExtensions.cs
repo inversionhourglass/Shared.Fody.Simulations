@@ -179,6 +179,16 @@ namespace Mono.Cecil
             return false;
         }
 
+        public static bool IsStateMachine(this TypeReference typeRef)
+        {
+            return typeRef.Implement(Constants.TYPE_IAsyncStateMachine);
+        }
+
+        public static bool IsIEnumerator(this TypeReference typeRef)
+        {
+            return typeRef.Implement(Constants.TYPE_IEnumerator);
+        }
+
         #endregion Fast Check
     }
 }
