@@ -261,6 +261,36 @@ namespace Mono.Cecil
                 return outerHandler;
             }
 
+            return methodDef.BuildOutermostExceptionHandler(handlerType);
+        }
+
+        private static bool IsOuterMostExceptionHandler(MethodDefinition methodDef, ExceptionHandler exceptionHandler)
+        {
+            if (exceptionHandler.HandlerEnd == null) return true;
+
+            var resultLoaded = methodDef.ReturnType.IsVoid();
+            var returned = false;
+            var instruction = exceptionHandler.HandlerEnd;
+            do
+            {
+                var code = instruction.OpCode.Code;
+                if (code == Code.Nop || code == Code.Break) continue;
+                if (instruction.IsLdloc())
+                {
+                    if (resultLoaded) break;
+                    resultLoaded = true;
+                    continue;
+                }
+                if (code == Code.Ret && resultLoaded) returned = true;
+            } while ((instruction = instruction.Next) != null);
+
+            return returned;
+        }
+
+        public static ExceptionHandler BuildOutermostExceptionHandler(this MethodReference methodRef, ExceptionHandlerType handlerType)
+        {
+            var methodDef = methodRef.ToDefinition();
+
             var returnBlock = methodDef.MergeReturnToLeave();
             var tryStart = methodDef.GetFirstInstruction();
             var tryEnd = handlerType == ExceptionHandlerType.Catch ? Instruction.Create(OpCodes.Pop) : Instruction.Create(OpCodes.Nop);
@@ -292,29 +322,6 @@ namespace Mono.Cecil
             methodDef.SkipExceptionHandlerBlockSequencePoint(handler);
 
             return handler;
-        }
-
-        private static bool IsOuterMostExceptionHandler(MethodDefinition methodDef, ExceptionHandler exceptionHandler)
-        {
-            if (exceptionHandler.HandlerEnd == null) return true;
-
-            var resultLoaded = methodDef.ReturnType.IsVoid();
-            var returned = false;
-            var instruction = exceptionHandler.HandlerEnd;
-            do
-            {
-                var code = instruction.OpCode.Code;
-                if (code == Code.Nop || code == Code.Break) continue;
-                if (instruction.IsLdloc())
-                {
-                    if (resultLoaded) break;
-                    resultLoaded = true;
-                    continue;
-                }
-                if (code == Code.Ret && resultLoaded) returned = true;
-            } while ((instruction = instruction.Next) != null);
-
-            return returned;
         }
 
         public static void UpdateDebugInfoLastSequencePoint(this MethodDefinition methodDef)
