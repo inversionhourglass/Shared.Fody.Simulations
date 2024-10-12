@@ -6,6 +6,7 @@ using System.Linq;
 using System.Diagnostics;
 using System.Reflection;
 using System;
+using System.Text;
 
 namespace Fody
 {
@@ -76,13 +77,16 @@ namespace Fody
                     methodDef = e.MethodDef;
                 }
 
-                if (methodDef == null)
+                if (e.Message != null)
                 {
-                    WriteError(e.Message);
-                }
-                else
-                {
-                    WriteError($"[{methodDef}] {e.Message}", methodDef);
+                    if (methodDef == null)
+                    {
+                        WriteError(e.Message);
+                    }
+                    else
+                    {
+                        WriteError(e.Message, methodDef);
+                    }
                 }
             }
         }
