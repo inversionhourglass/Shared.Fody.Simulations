@@ -25,6 +25,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\TypeReferenceExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FodyAggregateWeavingException.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FodyWeavingException.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Inspectors\MethodBodyVisitor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Inspectors\MethodStackDepth.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Inspectors\VisitStack.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Instructions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SimulationModuleWeaver.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Simulations\ArgumentSimulation.cs" />
