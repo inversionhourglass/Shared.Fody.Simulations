@@ -6,6 +6,11 @@ namespace Fody.Inspectors
     {
         private int _depth;
 
+        public void Reset()
+        {
+            _depth = 0;
+        }
+
         public void Increase(int count = 1)
         {
             _depth += count;

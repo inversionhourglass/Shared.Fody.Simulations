@@ -7,7 +7,7 @@ namespace Fody.Inspectors
 {
     public abstract class MethodBodyVisitor(MethodBody body)
     {
-        protected readonly bool _isVoid = body.Method.ReturnType.IsVoid();
+        protected readonly bool _isVoid = body.Method.ReturnType.StrictIsVoid();
         protected readonly MethodBody _body = body;
         protected readonly HashSet<Instruction> _visited = [];
         protected readonly VisitStack _visitStack = new();
@@ -1135,11 +1135,11 @@ namespace Fody.Inspectors
         protected virtual bool VisitCall(Instruction instruction)
         {
             var methodRef = (MethodReference)instruction.Operand;
-            if (!methodRef.ToDefinition().IsStatic) _stackDepth--;
+            if (methodRef.HasThis) _stackDepth--;
 
             _stackDepth -= methodRef.Parameters.Count;
 
-            if (!methodRef.ReturnType.IsVoid()) _stackDepth++;
+            if (!methodRef.ReturnType.StrictIsVoid()) _stackDepth++;
 
             return false;
         }
@@ -1147,11 +1147,11 @@ namespace Fody.Inspectors
         protected virtual bool VisitCallvirt(Instruction instruction)
         {
             var methodRef = (MethodReference)instruction.Operand;
-            if (!methodRef.ToDefinition().IsStatic) _stackDepth--;
+            if (methodRef.HasThis) _stackDepth--;
 
             _stackDepth -= methodRef.Parameters.Count;
 
-            if (!methodRef.ReturnType.IsVoid()) _stackDepth++;
+            if (!methodRef.ReturnType.StrictIsVoid()) _stackDepth++;
 
             return false;
         }
@@ -1160,7 +1160,7 @@ namespace Fody.Inspectors
         {
             var callSite = (CallSite)instruction.Operand;
             _stackDepth -= callSite.Parameters.Count + 1;
-            if (!callSite.ReturnType.IsVoid()) _stackDepth++;
+            if (!callSite.ReturnType.StrictIsVoid()) _stackDepth++;
 
             return false;
         }
