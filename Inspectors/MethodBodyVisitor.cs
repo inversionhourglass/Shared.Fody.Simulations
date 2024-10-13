@@ -776,7 +776,7 @@ namespace Fody.Inspectors
 
         protected virtual bool VisitThrow(Instruction instruction)
         {
-            _stackDepth--;
+            _stackDepth.Reset();
             return true;
         }
 
