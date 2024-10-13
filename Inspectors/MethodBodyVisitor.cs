@@ -40,10 +40,12 @@ namespace Fody.Inspectors
                         Visit(handler.HandlerStart);
                         break;
                     case ExceptionHandlerType.Fault:
-                        throw new FodyWeavingException("Fault handler is not supported.", handler.HandlerStart, _body.Method);
+                        Visit(handler.HandlerStart);
+                        break;
                     default:
                         throw new FodyWeavingException($"Unknow exception handler type: {handler.HandlerType}", handler.HandlerStart, _body.Method);
                 }
+                ValidateStackEmpty();
             }
         }
 
