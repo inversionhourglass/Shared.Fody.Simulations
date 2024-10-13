@@ -21,6 +21,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\MonoCloneExtension.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\MonoCollectionExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\OptimizeExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\TypeEqualsStrictlyExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\TypeEqualsExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\TypeReferenceExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FodyAggregateWeavingException.cs" />

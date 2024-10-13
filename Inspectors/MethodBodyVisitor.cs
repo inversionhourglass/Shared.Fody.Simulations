@@ -315,9 +315,6 @@ namespace Fody.Inspectors
                         case Code.Arglist:
                             if (VisitArglist(instruction)) return;
                             break;
-                        case Code.Ldvirtftn:
-                            if (VisitLdvirtftn(instruction)) return;
-                            break;
                         case Code.Sizeof:
                             if (VisitSizeof(instruction)) return;
                             break;
@@ -716,6 +713,9 @@ namespace Fody.Inspectors
                             break;
                         case Code.Mkrefany:
                             if (VisitMkrefany(instruction)) return;
+                            break;
+                        case Code.Ldvirtftn:
+                            if (VisitLdvirtftn(instruction)) return;
                             break;
                         case Code.Refanytype:
                             if (VisitRefanytype(instruction)) return;
@@ -1394,12 +1394,6 @@ namespace Fody.Inspectors
         }
 
         protected virtual bool VisitArglist(Instruction instruction)
-        {
-            _stackDepth++;
-            return false;
-        }
-
-        protected virtual bool VisitLdvirtftn(Instruction instruction)
         {
             _stackDepth++;
             return false;
@@ -2137,6 +2131,11 @@ namespace Fody.Inspectors
         }
 
         protected virtual bool VisitMkrefany(Instruction instruction)
+        {
+            return false;
+        }
+
+        protected virtual bool VisitLdvirtftn(Instruction instruction)
         {
             return false;
         }
