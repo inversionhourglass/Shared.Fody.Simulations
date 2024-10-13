@@ -7,6 +7,10 @@ namespace Mono.Cecil
     {
         public static bool StrictIs(this TypeReference typeRef, string fullName)
         {
+            if (typeRef is RequiredModifierType rmt)
+            {
+                typeRef = rmt.ElementType;
+            }
             return typeRef.FullName == fullName;
         }
 
