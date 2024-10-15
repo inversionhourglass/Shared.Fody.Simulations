@@ -43,6 +43,7 @@ namespace Fody
 
         public override void Execute()
         {
+            CacheClear();
             _debugMode = IsDebugMode();
 
             try
@@ -90,6 +91,8 @@ namespace Fody
                 }
             }
         }
+
+        protected virtual void CacheClear() { }
 
         protected abstract void ExecuteInternal();
 
