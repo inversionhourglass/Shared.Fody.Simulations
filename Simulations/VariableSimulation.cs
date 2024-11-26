@@ -3,6 +3,7 @@ using Mono.Cecil.Cil;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using static Mono.Cecil.Cil.Instruction;
 
 namespace Fody.Simulations
@@ -84,5 +85,11 @@ namespace Fody.Simulations
         public static IList<Instruction> AssignDefault(this VariableSimulation variable) => variable.AssignDefault(variable.Type);
 
         public static IList<Instruction> AssignDefault<T>(this VariableSimulation<T> variable) where T : TypeSimulation => variable.AssignDefault(variable.Value);
+
+        public static bool IsRefStruct(this VariableSimulation variable)
+        {
+            var def = variable.VariableDef.VariableType.ToDefinition();
+            return def != null && def.CustomAttributes.Any(y => y.Is(Constants.TYPE_IsByRefLikeAttribute));
+        }
     }
 }
