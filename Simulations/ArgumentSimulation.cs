@@ -11,15 +11,15 @@ namespace Fody.Simulations
     {
         public ParameterDefinition Def => parameterDef;
 
-        public TypeSimulation Type { get; } = parameterDef.ParameterType is ByReferenceType refType ? refType.ElementType.Simulate(moduleWeaver) : parameterDef.ParameterType.Simulate(moduleWeaver);
+        public virtual TypeSimulation Type { get; } = parameterDef.ParameterType is ByReferenceType refType ? refType.ElementType.Simulate(moduleWeaver) : parameterDef.ParameterType.Simulate(moduleWeaver);
 
-        public bool IsByReference => parameterDef.ParameterType.IsByReference;
+        public virtual bool IsByReference => parameterDef.ParameterType.IsByReference;
 
         public OpCode TrueToken => Type.TrueToken;
 
         public OpCode FalseToken => Type.FalseToken;
 
-        public IList<Instruction> Assign(Func<IAssignable, IList<Instruction>> valueFactory)
+        public virtual IList<Instruction> Assign(Func<IAssignable, IList<Instruction>> valueFactory)
         {
             if (IsByReference)
             {
@@ -28,7 +28,7 @@ namespace Fody.Simulations
             return [.. valueFactory(this), Create(OpCodes.Starg, parameterDef)];
         }
 
-        public IList<Instruction> AssignDefault(TypeSimulation type)
+        public virtual IList<Instruction> AssignDefault(TypeSimulation type)
         {
             var argTypeRef = Type.Ref;
             if (argTypeRef.IsValueType || argTypeRef.IsGenericParameter)
@@ -42,7 +42,7 @@ namespace Fody.Simulations
             return [Create(OpCodes.Ldnull), Create(OpCodes.Starg, parameterDef)];
         }
 
-        public IList<Instruction> Load()
+        public virtual IList<Instruction> Load()
         {
             if (!IsByReference)
             {
@@ -51,17 +51,17 @@ namespace Fody.Simulations
             return [Create(OpCodes.Ldarg, parameterDef), Type.Ref.Ldind()];
         }
 
-        public IList<Instruction> Cast(TypeReference to)
+        public virtual IList<Instruction> Cast(TypeReference to)
         {
             return Type.Cast(to);
         }
 
-        public IList<Instruction> PrepareLoadAddress(MethodSimulation? method)
+        public virtual IList<Instruction> PrepareLoadAddress(MethodSimulation? method)
         {
             return [];
         }
 
-        public IList<Instruction> LoadAddress(MethodSimulation? method)
+        public virtual IList<Instruction> LoadAddress(MethodSimulation? method)
         {
             return [Create(OpCodes.Ldarg, parameterDef)];
         }
@@ -81,5 +81,7 @@ namespace Fody.Simulations
             var def = arg.Def.ParameterType.ToDefinition();
             return def != null && def.CustomAttributes.Any(y => y.Is(Constants.TYPE_IsByRefLikeAttribute));
         }
+
+        public static FakeArgumentSimulation BeFake(this ArgumentSimulation arg, ILoadable loadable) => new(loadable, arg.Def, arg.ModuleWeaver);
     }
 }

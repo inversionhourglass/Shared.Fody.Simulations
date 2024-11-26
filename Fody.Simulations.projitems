@@ -33,6 +33,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)SimulationModuleWeaver.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Simulations\ArgumentSimulation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Simulations\EmptyHost.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Simulations\FakeArgumentSimulation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Simulations\FieldSimulation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Simulations\GenericMethodSimulation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Simulations\GlobalSimulations.cs" />
