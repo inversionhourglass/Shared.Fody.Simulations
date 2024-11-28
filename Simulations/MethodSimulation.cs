@@ -28,7 +28,7 @@ namespace Fody.Simulations
         {
             DeclaringType = declaringType;
             Def = methodRef.Resolve();
-            Ref = methodRef;
+            Ref = methodRef.WithGenericDeclaringType(declaringType);
             _declaringTypeGenericMap = DeclaringType.Ref.GetGenericMap();
             _genericParaIndexes = GetGenericParameterIndexes();
         }
