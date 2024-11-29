@@ -76,6 +76,7 @@
         public const string METHOD_Capture = "Capture";
         public const string METHOD_Throw = "Throw";
         public const string METHOD_Dispose = "Dispose";
+        public const string METHOD_DisposeAsync = "DisposeAsync";
 
         public const string METHOD_FULL_Dispose = "System.IDisposable.Dispose";
 
