@@ -1,4 +1,5 @@
 ﻿using Fody.Simulations.PlainValues;
+using Mono.Cecil.Cil;
 
 namespace Fody.Simulations.Operations
 {
@@ -10,6 +11,8 @@ namespace Fody.Simulations.Operations
 
         public static Eq IsNull(this ILoadable value) => new(value, new Null(value.ModuleWeaver));
 
+        public static ILoadable IsNotNull(this ILoadable value) => new RawValue(value.ModuleWeaver._simulations.Bool, [.. value.Load(), Instruction.Create(OpCodes.Ldnull), Instruction.Create(OpCodes.Cgt)]);
+
         public static Gt Gt(this ILoadable value1, ILoadable value2) => new(value1, value2);
 
         public static Gt Gt(this ILoadable value1, int value2) => value1.Gt(new Int32Value(value2, value1.ModuleWeaver));
@@ -18,15 +21,13 @@ namespace Fody.Simulations.Operations
 
         public static Lt Lt(this ILoadable value1, int value2) => value1.Lt(new Int32Value(value2, value1.ModuleWeaver));
 
-        public static BitAnd And(this ILoadable value1, ILoadable value2) => new(value1, value2);
+        public static BitAnd BitAnd(this ILoadable value1, ILoadable value2) => new(value1, value2);
 
-        public static BitAnd And(this ILoadable value1, int value2) => value1.And(new Int32Value(value2, value1.ModuleWeaver));
+        public static BitAnd BitAnd(this ILoadable value1, int value2) => value1.BitAnd(new Int32Value(value2, value1.ModuleWeaver));
 
-        public static BitOr Or(this ILoadable value1, ILoadable value2) => new(value1, value2);
+        public static BitOr BitOr(this ILoadable value1, ILoadable value2) => new(value1, value2);
 
-        public static BitOr Or(this ILoadable value1, int value2) => value1.Or(new Int32Value(value2, value1.ModuleWeaver));
-
-        public static Not Not(this ILoadable value) => new(value);
+        public static BitOr BitOr(this ILoadable value1, int value2) => value1.BitOr(new Int32Value(value2, value1.ModuleWeaver));
 
         public static Add Add(this ILoadable value1, ILoadable value2) => new(value1, value2);
 

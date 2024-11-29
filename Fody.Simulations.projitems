@@ -54,7 +54,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Simulations\Operations\Gt.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Simulations\Operations\ICondition.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Simulations\Operations\Lt.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Simulations\Operations\Not.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Simulations\Operations\OperationExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Simulations\Operations\UnaryOperation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Simulations\PlainValueSimulation.cs" />
