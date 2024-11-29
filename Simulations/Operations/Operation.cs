@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Fody.Simulations.Operations
 {
-    public abstract class ComparableOperation(ILoadable value1, ILoadable value2) : ILoadable
+    public abstract class Operation : ILoadable
     {
         public TypeSimulation Type => ModuleWeaver._simulations.Bool;
 
@@ -12,13 +12,10 @@ namespace Fody.Simulations.Operations
 
         public abstract OpCode FalseToken { get; }
 
-        public SimulationModuleWeaver ModuleWeaver => value1.ModuleWeaver ?? value2.ModuleWeaver;
+        public abstract SimulationModuleWeaver ModuleWeaver { get; }
 
         public IList<Instruction> Cast(TypeReference to) => Type.Cast(to);
 
-        public IList<Instruction> Load()
-        {
-            return [.. value1.Load(), .. value2.Load()];
-        }
+        public abstract IList<Instruction> Load();
     }
 }

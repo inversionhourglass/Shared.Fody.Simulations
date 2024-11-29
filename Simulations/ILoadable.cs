@@ -1,4 +1,5 @@
-﻿using Mono.Cecil;
+﻿using Fody.Simulations.Operations;
+using Mono.Cecil;
 using Mono.Cecil.Cil;
 using System;
 using System.Collections.Generic;
@@ -63,7 +64,14 @@ namespace Fody.Simulations
             var instructions = new List<Instruction>();
             anchor ??= Instruction.Create(OpCodes.Nop);
 
-            instructions.Add(loadable.Load());
+            if (loadable is ICondition condition)
+            {
+                instructions.Add(condition.LoadCondition());
+            }
+            else
+            {
+                instructions.Add(loadable.Load());
+            }
             instructions.Add(Instruction.Create(brCode, anchor));
             instructions.Add(handle(anchor));
             instructions.Add(anchor);
@@ -77,7 +85,14 @@ namespace Fody.Simulations
             anchorIfNot ??= Instruction.Create(OpCodes.Nop);
             anchorEnd ??= Instruction.Create(OpCodes.Nop);
 
-            instructions.Add(loadable.Load());
+            if (loadable is ICondition condition)
+            {
+                instructions.Add(condition.LoadCondition());
+            }
+            else
+            {
+                instructions.Add(loadable.Load());
+            }
             instructions.Add(Instruction.Create(brCode, anchorIfNot));
             instructions.Add(handleIf(anchorIfNot, anchorEnd));
             instructions.Add(Instruction.Create(OpCodes.Br, anchorEnd));

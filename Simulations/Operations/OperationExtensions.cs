@@ -22,6 +22,12 @@ namespace Fody.Simulations.Operations
 
         public static BitAnd And(this ILoadable value1, int value2) => value1.And(new Int32Value(value2, value1.ModuleWeaver));
 
+        public static BitOr Or(this ILoadable value1, ILoadable value2) => new(value1, value2);
+
+        public static BitOr Or(this ILoadable value1, int value2) => value1.Or(new Int32Value(value2, value1.ModuleWeaver));
+
+        public static Not Not(this ILoadable value) => new(value);
+
         public static Add Add(this ILoadable value1, ILoadable value2) => new(value1, value2);
 
         public static Add Add(this ILoadable value1, int value2) => value1.Add(new Int32Value(value2, value1.ModuleWeaver));
