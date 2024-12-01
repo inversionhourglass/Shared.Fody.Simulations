@@ -97,9 +97,9 @@ namespace Fody.Simulations
         #region Simulate
 
         #region Simulate-Method
-        protected MethodSimulation<TRet> MethodSimulate<TRet>(string methodName, bool recursion) where TRet : TypeSimulation => MethodSimulate<TRet>(methodName, recursion, x => x.Name == methodName);
+        public MethodSimulation<TRet> MethodSimulate<TRet>(string methodName, bool recursion) where TRet : TypeSimulation => MethodSimulate<TRet>(methodName, recursion, x => x.Name == methodName);
 
-        protected MethodSimulation<TRet> MethodSimulate<TRet>(string id, bool recursion, Func<MethodDefinition, bool> predicate) where TRet : TypeSimulation
+        public MethodSimulation<TRet> MethodSimulate<TRet>(string id, bool recursion, Func<MethodDefinition, bool> predicate) where TRet : TypeSimulation
         {
             if (!_methodSimulations.TryGetValue(id, out var simulation))
             {
@@ -109,11 +109,11 @@ namespace Fody.Simulations
             return (MethodSimulation<TRet>)simulation;
         }
 
-        protected MethodSimulation<TRet> PublicMethodSimulate<TRet>(string methodName, bool recursion) where TRet : TypeSimulation => MethodSimulate<TRet>(methodName, recursion, x => x.Name == methodName && x.IsPublic);
+        public MethodSimulation<TRet> PublicMethodSimulate<TRet>(string methodName, bool recursion) where TRet : TypeSimulation => MethodSimulate<TRet>(methodName, recursion, x => x.Name == methodName && x.IsPublic);
 
-        protected MethodSimulation MethodSimulate(string methodName, bool recursion) => MethodSimulate(methodName, recursion, x => x.Name == methodName);
+        public MethodSimulation MethodSimulate(string methodName, bool recursion) => MethodSimulate(methodName, recursion, x => x.Name == methodName);
 
-        protected MethodSimulation MethodSimulate(string id, bool recursion, Func<MethodDefinition, bool> predicate)
+        public MethodSimulation MethodSimulate(string id, bool recursion, Func<MethodDefinition, bool> predicate)
         {
             if (!_methodSimulations.TryGetValue(id, out var simulation))
             {
@@ -123,13 +123,13 @@ namespace Fody.Simulations
             return simulation;
         }
 
-        protected MethodSimulation PublicMethodSimulate(string methodName, bool recursion) => MethodSimulate(methodName, recursion, x => x.Name == methodName && x.IsPublic);
+        public MethodSimulation PublicMethodSimulate(string methodName, bool recursion) => MethodSimulate(methodName, recursion, x => x.Name == methodName && x.IsPublic);
         #endregion Simulate-Method
 
         #region Simulate-Field
-        protected FieldSimulation FieldSimulate(string fieldName) => FieldSimulate(fieldName, x => x.Name == fieldName);
+        public FieldSimulation FieldSimulate(string fieldName) => FieldSimulate(fieldName, x => x.Name == fieldName);
 
-        protected FieldSimulation FieldSimulate(string id, Func<FieldDefinition, bool> predicate)
+        public FieldSimulation FieldSimulate(string id, Func<FieldDefinition, bool> predicate)
         {
             if (!_fieldSimulations.TryGetValue(id, out var simulation))
             {
@@ -139,9 +139,9 @@ namespace Fody.Simulations
             return (FieldSimulation)simulation!;
         }
 
-        protected FieldSimulation<T> FieldSimulate<T>(string fieldName) where T : TypeSimulation => FieldSimulate<T>(fieldName, x => x.Name == fieldName);
+        public FieldSimulation<T> FieldSimulate<T>(string fieldName) where T : TypeSimulation => FieldSimulate<T>(fieldName, x => x.Name == fieldName);
 
-        protected FieldSimulation<T> FieldSimulate<T>(string id, Func<FieldDefinition, bool> predicate) where T : TypeSimulation
+        public FieldSimulation<T> FieldSimulate<T>(string id, Func<FieldDefinition, bool> predicate) where T : TypeSimulation
         {
             if (!_fieldSimulations.TryGetValue(id, out var simulation))
             {
@@ -151,7 +151,7 @@ namespace Fody.Simulations
             return (FieldSimulation<T>)simulation!;
         }
 
-        protected FieldSimulation<T>[] FieldSimulates<T>(string id, Func<FieldDefinition, bool> predicate) where T : TypeSimulation
+        public FieldSimulation<T>[] FieldSimulates<T>(string id, Func<FieldDefinition, bool> predicate) where T : TypeSimulation
         {
             if (!_fieldSimulations.TryGetValue(id, out var simulation))
             {
@@ -161,9 +161,9 @@ namespace Fody.Simulations
             return (FieldSimulation<T>[])simulation!;
         }
 
-        protected FieldSimulation<T>? OptionalFieldSimulate<T>(string fieldName) where T : TypeSimulation => FieldSimulate<T>(fieldName, x => x.Name == fieldName);
+        public FieldSimulation<T>? OptionalFieldSimulate<T>(string fieldName) where T : TypeSimulation => FieldSimulate<T>(fieldName, x => x.Name == fieldName);
 
-        protected FieldSimulation<T>? OptionalFieldSimulate<T>(string id, Func<FieldDefinition, bool> predicate) where T : TypeSimulation
+        public FieldSimulation<T>? OptionalFieldSimulate<T>(string id, Func<FieldDefinition, bool> predicate) where T : TypeSimulation
         {
             if (!_fieldSimulations.TryGetValue(id, out var simulation))
             {
@@ -174,7 +174,7 @@ namespace Fody.Simulations
             return (FieldSimulation<T>?)simulation;
         }
 
-        protected FieldSimulation<T>[]? OptionalFieldSimulates<T>(string id, Func<FieldDefinition, bool> predicate) where T : TypeSimulation
+        public FieldSimulation<T>[]? OptionalFieldSimulates<T>(string id, Func<FieldDefinition, bool> predicate) where T : TypeSimulation
         {
             if (!_fieldSimulations.TryGetValue(id, out var simulation))
             {
@@ -187,22 +187,22 @@ namespace Fody.Simulations
         #endregion Simulate-Field
 
         #region Simulate-Property
-        protected PropertySimulation PropertySimulate(string propertyName, bool recursion)
+        public PropertySimulation PropertySimulate(string propertyName, bool recursion)
         {
             return PropertySimulateInner(propertyName, recursion, false)!;
         }
 
-        protected PropertySimulation<T> PropertySimulate<T>(string propertyName, bool recursion) where T : TypeSimulation
+        public PropertySimulation<T> PropertySimulate<T>(string propertyName, bool recursion) where T : TypeSimulation
         {
             return PropertySimulateInner<T>(propertyName, recursion, false)!;
         }
 
-        protected PropertySimulation? OptionalPropertySimulate(string propertyName, bool recursion)
+        public PropertySimulation? OptionalPropertySimulate(string propertyName, bool recursion)
         {
             return PropertySimulateInner(propertyName, recursion, true);
         }
 
-        protected PropertySimulation<T>? OptionalPropertySimulate<T>(string propertyName, bool recursion) where T : TypeSimulation
+        public PropertySimulation<T>? OptionalPropertySimulate<T>(string propertyName, bool recursion) where T : TypeSimulation
         {
             return PropertySimulateInner<T>(propertyName, recursion, true);
         }
