@@ -122,6 +122,12 @@ namespace Mono.Cecil
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsDouble(this TypeReference typeRef)
+        {
+            return typeRef.Resolve().FullName == typeof(double).FullName;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsTask(this TypeReference typeRef)
         {
             return typeRef.Is(Constants.TYPE_Task);
