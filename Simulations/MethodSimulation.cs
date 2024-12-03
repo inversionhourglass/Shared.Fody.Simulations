@@ -15,22 +15,32 @@ namespace Fody.Simulations
         protected Dictionary<string, TypeReference>? _lastCallMethodGenericMap;
         private TypeSimulation? _result;
 
-        public MethodSimulation(TypeSimulation declaringType, MethodDefinition methodDef) : base(declaringType.ModuleWeaver)
+        public MethodSimulation(TypeSimulation declaringType, MethodDefinition methodDef, bool interfaceDefaultMethod = false) : base(declaringType.ModuleWeaver)
         {
             DeclaringType = declaringType;
             Def = methodDef;
-            Ref = ModuleWeaver.Import(methodDef).WithGenericDeclaringType(declaringType);
+            Ref = ModuleWeaver.Import(methodDef);
+            if (!interfaceDefaultMethod)
+            {
+                Ref = Ref.WithGenericDeclaringType(declaringType);
+            }
             _declaringTypeGenericMap = DeclaringType.Ref.GetGenericMap();
             _genericParaIndexes = GetGenericParameterIndexes();
+            InterfaceDefaultMethod = interfaceDefaultMethod;
         }
 
-        public MethodSimulation(TypeSimulation declaringType, MethodReference methodRef) : base(declaringType.ModuleWeaver)
+        public MethodSimulation(TypeSimulation declaringType, MethodReference methodRef, bool interfaceDefaultMethod = false) : base(declaringType.ModuleWeaver)
         {
             DeclaringType = declaringType;
             Def = methodRef.Resolve();
-            Ref = methodRef.WithGenericDeclaringType(declaringType);
+            Ref = methodRef;
+            if (!interfaceDefaultMethod)
+            {
+                Ref = Ref.WithGenericDeclaringType(declaringType);
+            }
             _declaringTypeGenericMap = DeclaringType.Ref.GetGenericMap();
             _genericParaIndexes = GetGenericParameterIndexes();
+            InterfaceDefaultMethod = interfaceDefaultMethod;
         }
 
         protected Dictionary<string, TypeReference> GenericMap
@@ -44,6 +54,8 @@ namespace Fody.Simulations
                 return merged;
             }
         }
+
+        public bool InterfaceDefaultMethod { get; }
 
         public TypeSimulation DeclaringType { get; }
 
@@ -97,6 +109,14 @@ namespace Fody.Simulations
                 {
                     instructions.Add(Instruction.Create(OpCodes.Dup));
                 }
+                else if (InterfaceDefaultMethod)
+                {
+                    instructions.Add(DeclaringType.Load());
+                    if (DeclaringType.IsValueType)
+                    {
+                        instructions.Add(Instruction.Create(OpCodes.Box, DeclaringType));
+                    }
+                }
                 else
                 {
                     instructions.Add(DeclaringType.LoadAny());
@@ -120,7 +140,14 @@ namespace Fody.Simulations
                     instructions.Add(argument.Cast(parameterTypeRef));
                 }
             }
-            instructions.Add(methodRef.CallAny(Def));
+            if (InterfaceDefaultMethod)
+            {
+                instructions.Add(Instruction.Create(OpCodes.Callvirt, methodRef));
+            }
+            else
+            {
+                instructions.Add(methodRef.CallAny(Def));
+            }
 
             return instructions;
         }
@@ -249,9 +276,9 @@ namespace Fody.Simulations
 
     public class MethodSimulation<T> : MethodSimulation where T : TypeSimulation
     {
-        public MethodSimulation(TypeSimulation declaringType, MethodDefinition methodDef) : base(declaringType, methodDef) { }
+        public MethodSimulation(TypeSimulation declaringType, MethodDefinition methodDef, bool interfaceDefaultMethod = false) : base(declaringType, methodDef, interfaceDefaultMethod) { }
 
-        public MethodSimulation(TypeSimulation declaringType, MethodReference methodRef) : base(declaringType, methodRef) { }
+        public MethodSimulation(TypeSimulation declaringType, MethodReference methodRef, bool interfaceDefaultMethod = false) : base(declaringType, methodRef, interfaceDefaultMethod) { }
 
         private T? _result;
 
@@ -267,24 +294,24 @@ namespace Fody.Simulations
 
     public static class MethodSimulationExtensions
     {
-        public static MethodSimulation Simulate(this MethodDefinition methodDef, TypeSimulation declaringType)
+        public static MethodSimulation Simulate(this MethodDefinition methodDef, TypeSimulation declaringType, bool interfaceDefaultMethod = false)
         {
-            return new MethodSimulation(declaringType, methodDef);
+            return new MethodSimulation(declaringType, methodDef, interfaceDefaultMethod);
         }
 
-        public static MethodSimulation Simulate(this MethodReference methodRef, TypeSimulation declaringType)
+        public static MethodSimulation Simulate(this MethodReference methodRef, TypeSimulation declaringType, bool interfaceDefaultMethod = false)
         {
-            return new MethodSimulation(declaringType, methodRef);
+            return new MethodSimulation(declaringType, methodRef, interfaceDefaultMethod);
         }
 
-        public static MethodSimulation<T> Simulate<T>(this MethodDefinition methodDef, TypeSimulation declaringType) where T : TypeSimulation
+        public static MethodSimulation<T> Simulate<T>(this MethodDefinition methodDef, TypeSimulation declaringType, bool interfaceDefaultMethod = false) where T : TypeSimulation
         {
-            return new MethodSimulation<T>(declaringType, methodDef);
+            return new MethodSimulation<T>(declaringType, methodDef, interfaceDefaultMethod);
         }
 
-        public static MethodSimulation<T> Simulate<T>(this MethodReference methodRef, TypeSimulation declaringType) where T : TypeSimulation
+        public static MethodSimulation<T> Simulate<T>(this MethodReference methodRef, TypeSimulation declaringType, bool interfaceDefaultMethod = false) where T : TypeSimulation
         {
-            return new MethodSimulation<T>(declaringType, methodRef);
+            return new MethodSimulation<T>(declaringType, methodRef, interfaceDefaultMethod);
         }
     }
 }
