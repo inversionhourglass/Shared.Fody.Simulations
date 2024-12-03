@@ -42,14 +42,14 @@ namespace Mono.Cecil
             return interfaces;
         }
 
-        public static TypeDefinition? GetInterfaceDefinition(this TypeDefinition typeDef, string interfaceName)
+        public static TypeDefinition? GetInterfaceDefinition(this TypeDefinition? typeDef, string interfaceName)
         {
-            do
+            while (typeDef != null)
             {
-                var interfaceRef = typeDef.Interfaces.Select(itf => itf.InterfaceType).Where(itfRef => itfRef.Is(interfaceName));
-                if (interfaceRef.Any()) return interfaceRef.First().Resolve();
-                typeDef = typeDef.BaseType.Resolve();
-            } while (typeDef != null);
+                var interfaceRef = typeDef.Interfaces.Select(itf => itf.InterfaceType).FirstOrDefault(itfRef => itfRef.Is(interfaceName));
+                if (interfaceRef != null) return interfaceRef.Resolve();
+                typeDef = typeDef.BaseType?.Resolve();
+            }
 
             return null;
         }
