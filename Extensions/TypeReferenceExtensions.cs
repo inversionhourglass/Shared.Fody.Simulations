@@ -221,6 +221,74 @@ namespace Mono.Cecil
         }
         #endregion Generic
 
+        /// <summary>
+        /// 将<paramref name="baseTypeRef"/>的类型泛型参数推断到<paramref name="typeRef"/>的类型泛型参数。<paramref name="baseTypeRef"/>不一定是<paramref name="typeRef"/>的直接父类，可能是祖辈父类
+        /// </summary>
+        /// <param name="typeRef">子类</param>
+        /// <param name="baseTypeRef">父类</param>
+        /// <returns>
+        /// key: <paramref name="baseTypeRef"/>的泛型参数名
+        /// value: 对应到<paramref name="typeRef"/>的泛型类型
+        /// </returns>
+        /// <remarks>
+        /// 情况分多种：
+        /// 1. 最简单的，泛型参数原样继承。下面的例子中，返回 { "T1": "T1", "T2": "T2" }
+        /// <![CDATA[
+        ///     class X<T1, T2> { }
+        ///     class Y<T1, T2> : X<T1, T2> { }
+        /// ]]>
+        /// 2. 子类修改了泛型参数名称。下面的例子中，返回 { "T1": "TA", "T2": "TB" }
+        /// <![CDATA[
+        ///     class X<T1, T2> { }
+        ///     class Y<TA, TB> : X<TA, TB> { }
+        /// ]]>
+        /// 3. 子类指定了泛型参数类型。下面的例子中，返回 { "T1": "System.Int32", "T2": "System.Double" }
+        /// <![CDATA[
+        ///     class X<T1, T2> { }
+        ///     class Y : X<int, double> { }
+        ///     class Z<T> : Y { }
+        /// ]]>
+        /// 4. 子类指定了部分泛型参数类型。下面的例子中，返回 { "T1": "TA", "T2": "System.String" }
+        /// <![CDATA[
+        ///     class X<T1, T2> { }
+        ///     class Y<TA> : X<TA, string> { }
+        /// ]]>
+        /// 5. 多层继承等复杂情况。下面的例子中，返回 { "T1": "System.Guid", "T2": "TY" }
+        /// <![CDATA[
+        ///     class X<T1, T2> { }
+        ///     class Y<TA, TB, TC> : X<Guid, TC> { }
+        ///     class Z<TX, TY> : Y<TX, string, TY> { }
+        /// ]]>
+        /// </remarks>
+        public static Dictionary<string, TypeReference> InferingBaseTypeGenerics(this TypeReference typeRef, TypeReference baseTypeRef)
+        {
+            var result = new Dictionary<string, TypeReference>();
+            var typeDef = typeRef.ToDefinition();
+            var baseTypeDef = baseTypeRef.ToDefinition();
+
+            while (true)
+            {
+                var currentBase = typeDef.BaseType ?? throw new FodyWeavingException($"Type {typeRef.FullName} does not inherit from {baseTypeRef.FullName}");
+
+                if (currentBase is GenericInstanceType git)
+                {
+                    var elementType = git.ElementType.ToDefinition();
+                    if (elementType.StrictEqual(baseTypeDef))
+                    {
+                        for (int i = 0; i < baseTypeDef.GenericParameters.Count; i++)
+                        {
+                            var baseGenericParam = baseTypeDef.GenericParameters[i];
+                            var genericArg = git.GenericArguments[i];
+                            //result[baseGenericParam.Name] = genericArg is GenericParameter gp ? gp.Name : genericArg.FullName;
+                        }
+                        return result;
+                    }
+                }
+
+                typeDef = currentBase.ToDefinition();
+            }
+        }
+
         #region Infering Import
         /// <summary>
         ///  注意：该Import仅用于类型推断，最终返回的TypeReference还是需要进行Module的import
