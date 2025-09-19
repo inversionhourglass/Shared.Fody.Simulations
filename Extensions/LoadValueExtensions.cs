@@ -8,7 +8,7 @@ namespace Fody
     // refer: https://github.com/vescon/MethodBoundaryAspect.Fody/blob/master/src/MethodBoundaryAspect.Fody/InstructionBlockCreator.cs#L313
     public static class LoadValueExtensions
     {
-        public static IList<Instruction> LoadValueOnStack(this SimulationModuleWeaver moduleWeaver, TypeReference parameterType, object value)
+        public static List<Instruction> LoadValueOnStack(this SimulationModuleWeaver moduleWeaver, TypeReference parameterType, object value)
         {
             if (parameterType.IsArray(out var elementType) && value is CustomAttributeArgument[] args)
             {
@@ -58,7 +58,7 @@ namespace Fody
             throw new NotSupportedException("Parametertype: " + parameterType);
         }
 
-        private static Instruction[] LoadPrimitiveConstOnStack(MetadataType type, object value)
+        private static List<Instruction> LoadPrimitiveConstOnStack(MetadataType type, object value)
         {
             switch (type)
             {
