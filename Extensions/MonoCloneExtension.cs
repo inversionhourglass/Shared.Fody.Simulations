@@ -166,6 +166,13 @@ namespace Mono.Cecil
                 }
             }
 
+            clonedMethodDef.ReturnType = RemapTypeReference(methodDef.ReturnType, map);
+            for (var i = 0; i < clonedMethodDef.Parameters.Count; i++)
+            {
+                clonedMethodDef.Parameters[i].ParameterType = RemapTypeReference(methodDef.Parameters[i].ParameterType, map);
+            }
+            RemapGenericParameterConstraints(clonedMethodDef.GenericParameters, map);
+
             if (!cloneBody) return;
 
             if (methodDef.Body.HasVariables)
@@ -309,23 +316,100 @@ namespace Mono.Cecil
 
         public static ParameterDefinition Clone(this ParameterDefinition parameterDef, Dictionary<object, object> map)
         {
-            var parameterTypeRef = parameterDef.ParameterType;
-            var isByReference = parameterTypeRef.IsByReference; // out or ref parameter
-            if (isByReference)
+            var parameterTypeRef = RemapTypeReference(parameterDef.ParameterType, map);
+            var clonedParameterDef = new ParameterDefinition(parameterDef.Name, parameterDef.Attributes, parameterTypeRef);
+            if (parameterDef.HasCustomAttributes)
             {
-                parameterTypeRef = ((ByReferenceType)parameterTypeRef).ElementType;
+                clonedParameterDef.CustomAttributes.Add(parameterDef.CustomAttributes);
             }
-            if (parameterTypeRef.IsGenericParameter && map.TryGetValue(parameterTypeRef, out var mapTo))
+            if (parameterDef.HasConstant)
             {
-                parameterTypeRef = (GenericParameter)mapTo;
+                clonedParameterDef.Constant = parameterDef.Constant;
             }
-            if (isByReference)
+            if (parameterDef.HasMarshalInfo)
             {
-                parameterTypeRef = new ByReferenceType(parameterTypeRef);
-                map[parameterDef.ParameterType] = parameterTypeRef;
+                clonedParameterDef.MarshalInfo = parameterDef.MarshalInfo;
             }
+            map[parameterDef.ParameterType] = parameterTypeRef;
+            return clonedParameterDef;
+        }
 
-            return new ParameterDefinition(parameterDef.Name, parameterDef.Attributes, parameterTypeRef);
+        private static void RemapGenericParameterConstraints(IEnumerable<GenericParameter> genericParameters, Dictionary<object, object> map)
+        {
+            foreach (var genericParameter in genericParameters)
+            {
+                if (!genericParameter.HasConstraints) continue;
+                for (var i = 0; i < genericParameter.Constraints.Count; i++)
+                {
+                    var constraint = genericParameter.Constraints[i];
+                    constraint.ConstraintType = RemapTypeReference(constraint.ConstraintType, map);
+                }
+            }
+        }
+
+        private static TypeReference RemapTypeReference(TypeReference typeReference, Dictionary<object, object> map)
+        {
+            if (map.TryGetValue(typeReference, out var mappedType) && mappedType is TypeReference typeRef)
+            {
+                return typeRef;
+            }
+            if (typeReference is GenericParameter genericParameter && map.TryGetValue(genericParameter, out var mappedGeneric) && mappedGeneric is TypeReference genericTypeRef)
+            {
+                return genericTypeRef;
+            }
+            if (typeReference is ByReferenceType byReferenceType)
+            {
+                return new ByReferenceType(RemapTypeReference(byReferenceType.ElementType, map));
+            }
+            if (typeReference is PointerType pointerType)
+            {
+                return new PointerType(RemapTypeReference(pointerType.ElementType, map));
+            }
+            if (typeReference is PinnedType pinnedType)
+            {
+                return new PinnedType(RemapTypeReference(pinnedType.ElementType, map));
+            }
+            if (typeReference is SentinelType sentinelType)
+            {
+                return new SentinelType(RemapTypeReference(sentinelType.ElementType, map));
+            }
+            if (typeReference is ArrayType arrayType)
+            {
+                var remappedElementType = RemapTypeReference(arrayType.ElementType, map);
+                var remappedArray = new ArrayType(remappedElementType, arrayType.Rank);
+                if (arrayType.Dimensions.Count > 0)
+                {
+                    remappedArray.Dimensions.Clear();
+                    foreach (var dimension in arrayType.Dimensions)
+                    {
+                        remappedArray.Dimensions.Add(new ArrayDimension(dimension.LowerBound, dimension.UpperBound));
+                    }
+                }
+                return remappedArray;
+            }
+            if (typeReference is GenericInstanceType genericInstanceType)
+            {
+                var remappedElementType = RemapTypeReference(genericInstanceType.ElementType, map);
+                var remappedGenericInstance = new GenericInstanceType(remappedElementType);
+                foreach (var genericArgument in genericInstanceType.GenericArguments)
+                {
+                    remappedGenericInstance.GenericArguments.Add(RemapTypeReference(genericArgument, map));
+                }
+                return remappedGenericInstance;
+            }
+            if (typeReference is OptionalModifierType optionalModifierType)
+            {
+                return new OptionalModifierType(
+                    RemapTypeReference(optionalModifierType.ModifierType, map),
+                    RemapTypeReference(optionalModifierType.ElementType, map));
+            }
+            if (typeReference is RequiredModifierType requiredModifierType)
+            {
+                return new RequiredModifierType(
+                    RemapTypeReference(requiredModifierType.ModifierType, map),
+                    RemapTypeReference(requiredModifierType.ElementType, map));
+            }
+            return typeReference;
         }
 
         public static ScopeDebugInformation? Clone(this ScopeDebugInformation? scope, Dictionary<int, Instruction> offsetMap, Dictionary<object, object> variableMap)

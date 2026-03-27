@@ -51,7 +51,20 @@ namespace Mono.Cecil
             };
             foreach (var parameter in methodRef.Parameters)
             {
-                genericMethodRef.Parameters.Add(new ParameterDefinition(parameter.ParameterType));
+                var clonedParameter = new ParameterDefinition(parameter.Name, parameter.Attributes, parameter.ParameterType);
+                if (parameter.HasCustomAttributes)
+                {
+                    clonedParameter.CustomAttributes.Add(parameter.CustomAttributes);
+                }
+                if (parameter.HasConstant)
+                {
+                    clonedParameter.Constant = parameter.Constant;
+                }
+                if (parameter.HasMarshalInfo)
+                {
+                    clonedParameter.MarshalInfo = parameter.MarshalInfo;
+                }
+                genericMethodRef.Parameters.Add(clonedParameter);
             }
             foreach (var parameter in methodRef.GenericParameters)
             {
