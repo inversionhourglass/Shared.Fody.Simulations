@@ -1,4 +1,4 @@
-﻿using Mono.Cecil.Cil;
+using Mono.Cecil.Cil;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -166,13 +166,6 @@ namespace Mono.Cecil
                 }
             }
 
-            clonedMethodDef.ReturnType = RemapTypeReference(methodDef.ReturnType, map);
-            for (var i = 0; i < clonedMethodDef.Parameters.Count; i++)
-            {
-                clonedMethodDef.Parameters[i].ParameterType = RemapTypeReference(methodDef.Parameters[i].ParameterType, map);
-            }
-            RemapGenericParameterConstraints(clonedMethodDef.GenericParameters, map);
-
             if (!cloneBody) return;
 
             if (methodDef.Body.HasVariables)
@@ -316,100 +309,50 @@ namespace Mono.Cecil
 
         public static ParameterDefinition Clone(this ParameterDefinition parameterDef, Dictionary<object, object> map)
         {
-            var parameterTypeRef = RemapTypeReference(parameterDef.ParameterType, map);
+            var parameterTypeRef = parameterDef.ParameterType;
+            var isByReference = parameterTypeRef.IsByReference; // out or ref parameter
+            if (isByReference)
+            {
+                parameterTypeRef = ((ByReferenceType)parameterTypeRef).ElementType;
+            }
+            if (parameterTypeRef.IsGenericParameter && map.TryGetValue(parameterTypeRef, out var mapTo))
+            {
+                parameterTypeRef = (GenericParameter)mapTo;
+            }
+            if (isByReference)
+            {
+                parameterTypeRef = new ByReferenceType(parameterTypeRef);
+                map[parameterDef.ParameterType] = parameterTypeRef;
+            }
+
+            return parameterDef.Clone(parameterTypeRef);
+        }
+
+        public static ParameterDefinition Clone(this ParameterDefinition parameterDef, TypeReference parameterTypeRef)
+        {
             var clonedParameterDef = new ParameterDefinition(parameterDef.Name, parameterDef.Attributes, parameterTypeRef);
-            if (parameterDef.HasCustomAttributes)
-            {
-                clonedParameterDef.CustomAttributes.Add(parameterDef.CustomAttributes);
-            }
-            if (parameterDef.HasConstant)
-            {
-                clonedParameterDef.Constant = parameterDef.Constant;
-            }
-            if (parameterDef.HasMarshalInfo)
-            {
-                clonedParameterDef.MarshalInfo = parameterDef.MarshalInfo;
-            }
-            map[parameterDef.ParameterType] = parameterTypeRef;
+            CopyMetadata(parameterDef, clonedParameterDef);
             return clonedParameterDef;
         }
 
-        private static void RemapGenericParameterConstraints(IEnumerable<GenericParameter> genericParameters, Dictionary<object, object> map)
+        private static void CopyMetadata(ParameterDefinition source, ParameterDefinition target)
         {
-            foreach (var genericParameter in genericParameters)
+            target.IsIn = source.IsIn;
+            target.IsOut = source.IsOut;
+            target.IsOptional = source.IsOptional;
+            target.HasDefault = source.HasDefault;
+            if (source.HasConstant)
             {
-                if (!genericParameter.HasConstraints) continue;
-                for (var i = 0; i < genericParameter.Constraints.Count; i++)
-                {
-                    var constraint = genericParameter.Constraints[i];
-                    constraint.ConstraintType = RemapTypeReference(constraint.ConstraintType, map);
-                }
+                target.Constant = source.Constant;
             }
-        }
-
-        private static TypeReference RemapTypeReference(TypeReference typeReference, Dictionary<object, object> map)
-        {
-            if (map.TryGetValue(typeReference, out var mappedType) && mappedType is TypeReference typeRef)
+            if (source.HasMarshalInfo)
             {
-                return typeRef;
+                target.MarshalInfo = source.MarshalInfo;
             }
-            if (typeReference is GenericParameter genericParameter && map.TryGetValue(genericParameter, out var mappedGeneric) && mappedGeneric is TypeReference genericTypeRef)
+            if (source.HasCustomAttributes)
             {
-                return genericTypeRef;
+                target.CustomAttributes.Add(source.CustomAttributes);
             }
-            if (typeReference is ByReferenceType byReferenceType)
-            {
-                return new ByReferenceType(RemapTypeReference(byReferenceType.ElementType, map));
-            }
-            if (typeReference is PointerType pointerType)
-            {
-                return new PointerType(RemapTypeReference(pointerType.ElementType, map));
-            }
-            if (typeReference is PinnedType pinnedType)
-            {
-                return new PinnedType(RemapTypeReference(pinnedType.ElementType, map));
-            }
-            if (typeReference is SentinelType sentinelType)
-            {
-                return new SentinelType(RemapTypeReference(sentinelType.ElementType, map));
-            }
-            if (typeReference is ArrayType arrayType)
-            {
-                var remappedElementType = RemapTypeReference(arrayType.ElementType, map);
-                var remappedArray = new ArrayType(remappedElementType, arrayType.Rank);
-                if (arrayType.Dimensions.Count > 0)
-                {
-                    remappedArray.Dimensions.Clear();
-                    foreach (var dimension in arrayType.Dimensions)
-                    {
-                        remappedArray.Dimensions.Add(new ArrayDimension(dimension.LowerBound, dimension.UpperBound));
-                    }
-                }
-                return remappedArray;
-            }
-            if (typeReference is GenericInstanceType genericInstanceType)
-            {
-                var remappedElementType = RemapTypeReference(genericInstanceType.ElementType, map);
-                var remappedGenericInstance = new GenericInstanceType(remappedElementType);
-                foreach (var genericArgument in genericInstanceType.GenericArguments)
-                {
-                    remappedGenericInstance.GenericArguments.Add(RemapTypeReference(genericArgument, map));
-                }
-                return remappedGenericInstance;
-            }
-            if (typeReference is OptionalModifierType optionalModifierType)
-            {
-                return new OptionalModifierType(
-                    RemapTypeReference(optionalModifierType.ModifierType, map),
-                    RemapTypeReference(optionalModifierType.ElementType, map));
-            }
-            if (typeReference is RequiredModifierType requiredModifierType)
-            {
-                return new RequiredModifierType(
-                    RemapTypeReference(requiredModifierType.ModifierType, map),
-                    RemapTypeReference(requiredModifierType.ElementType, map));
-            }
-            return typeReference;
         }
 
         public static ScopeDebugInformation? Clone(this ScopeDebugInformation? scope, Dictionary<int, Instruction> offsetMap, Dictionary<object, object> variableMap)

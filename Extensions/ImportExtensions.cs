@@ -1,4 +1,4 @@
-﻿using Mono.Cecil;
+using Mono.Cecil;
 using Mono.Cecil.Rocks;
 using System.Collections.Generic;
 
@@ -7,6 +7,9 @@ namespace Fody
     public static class ImportExtensions
     {
         private const string SCOPE_VALUE_TUPLE = "System.ValueTuple.dll";
+        private const string SCOPE_TASKS_EXTENSIONS = "System.Threading.Tasks.Extensions.dll";
+        private const string SCOPE_BCL_ASYNC_INTERFACES = "Microsoft.Bcl.AsyncInterfaces.dll";
+        private const string SCOPE_SYSTEM_MEMORY = "System.Memory.dll";
 
         public static TypeReference Import(this BaseModuleWeaver moduleWeaver, TypeReference typeRef)
         {
@@ -30,7 +33,11 @@ namespace Fody
              * 有的是其他头疼的问题，先跳过就完了。若要复现问题，删除下面if判断中`typeDef.Scope.Name != SCOPE_VALUE_TUPLE`部分，
              * 然后执行net461下的测试用例`ExecutionTupleSyntaxTest`
              */
-            if (typeDef.Scope.Name != SCOPE_VALUE_TUPLE && moduleWeaver.TryFindTypeDefinition(typeDef.FullName, out var td))
+            if (typeDef.Scope.Name != SCOPE_VALUE_TUPLE &&
+                typeDef.Scope.Name != SCOPE_TASKS_EXTENSIONS &&
+                typeDef.Scope.Name != SCOPE_BCL_ASYNC_INTERFACES &&
+                typeDef.Scope.Name != SCOPE_SYSTEM_MEMORY &&
+                moduleWeaver.TryFindTypeDefinition(typeDef.FullName, out var td))
             {
                 typeDef = td;
             }
@@ -69,7 +76,7 @@ namespace Fody
 
             foreach (var p in methodRef.Parameters)
             {
-                reference.Parameters.Add(new ParameterDefinition(p.Name, p.Attributes, Import(moduleWeaver, p.ParameterType)));
+                reference.Parameters.Add(p.Clone(Import(moduleWeaver, p.ParameterType)));
             }
 
             return moduleWeaver.ModuleDefinition.ImportReference(reference);

@@ -1,4 +1,4 @@
-﻿using Fody;
+using Fody;
 using Mono.Cecil.Cil;
 using System;
 using System.Collections;
@@ -51,20 +51,7 @@ namespace Mono.Cecil
             };
             foreach (var parameter in methodRef.Parameters)
             {
-                var clonedParameter = new ParameterDefinition(parameter.Name, parameter.Attributes, parameter.ParameterType);
-                if (parameter.HasCustomAttributes)
-                {
-                    clonedParameter.CustomAttributes.Add(parameter.CustomAttributes);
-                }
-                if (parameter.HasConstant)
-                {
-                    clonedParameter.Constant = parameter.Constant;
-                }
-                if (parameter.HasMarshalInfo)
-                {
-                    clonedParameter.MarshalInfo = parameter.MarshalInfo;
-                }
-                genericMethodRef.Parameters.Add(clonedParameter);
+                genericMethodRef.Parameters.Add(parameter.Clone(parameter.ParameterType));
             }
             foreach (var parameter in methodRef.GenericParameters)
             {
