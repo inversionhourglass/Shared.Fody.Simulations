@@ -1,4 +1,4 @@
-﻿using Mono.Cecil.Cil;
+using Mono.Cecil.Cil;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -325,7 +325,34 @@ namespace Mono.Cecil
                 map[parameterDef.ParameterType] = parameterTypeRef;
             }
 
-            return new ParameterDefinition(parameterDef.Name, parameterDef.Attributes, parameterTypeRef);
+            return parameterDef.Clone(parameterTypeRef);
+        }
+
+        public static ParameterDefinition Clone(this ParameterDefinition parameterDef, TypeReference parameterTypeRef)
+        {
+            var clonedParameterDef = new ParameterDefinition(parameterDef.Name, parameterDef.Attributes, parameterTypeRef);
+            CopyMetadata(parameterDef, clonedParameterDef);
+            return clonedParameterDef;
+        }
+
+        private static void CopyMetadata(ParameterDefinition source, ParameterDefinition target)
+        {
+            target.IsIn = source.IsIn;
+            target.IsOut = source.IsOut;
+            target.IsOptional = source.IsOptional;
+            target.HasDefault = source.HasDefault;
+            if (source.HasConstant)
+            {
+                target.Constant = source.Constant;
+            }
+            if (source.HasMarshalInfo)
+            {
+                target.MarshalInfo = source.MarshalInfo;
+            }
+            if (source.HasCustomAttributes)
+            {
+                target.CustomAttributes.Add(source.CustomAttributes);
+            }
         }
 
         public static ScopeDebugInformation? Clone(this ScopeDebugInformation? scope, Dictionary<int, Instruction> offsetMap, Dictionary<object, object> variableMap)

@@ -1,4 +1,4 @@
-﻿using Fody;
+using Fody;
 using Mono.Cecil.Cil;
 using System;
 using System.Collections;
@@ -51,7 +51,7 @@ namespace Mono.Cecil
             };
             foreach (var parameter in methodRef.Parameters)
             {
-                genericMethodRef.Parameters.Add(new ParameterDefinition(parameter.ParameterType));
+                genericMethodRef.Parameters.Add(parameter.Clone(parameter.ParameterType));
             }
             foreach (var parameter in methodRef.GenericParameters)
             {
