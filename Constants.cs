@@ -20,7 +20,10 @@
         public const string TYPE_ValueTask = "System.Threading.Tasks.ValueTask";
         public const string TYPE_MulticastDelegate = "System.MulticastDelegate";
         public const string TYPE_IEnumerable = "System.Collections.Generic.IEnumerable";
+        public const string TYPE_IEnumerator = "System.Collections.IEnumerator";
+        public const string TYPE_IEnumerator_1 = "System.Collections.Generic.IEnumerator";
         public const string TYPE_IAsyncEnumerable = "System.Collections.Generic.IAsyncEnumerable";
+        public const string TYPE_IAsyncEnumerator = "System.Collections.Generic.IAsyncEnumerator";
         public const string TYPE_CompilerGeneratedAttribute = "System.CompilerGeneratedAttribute";
         public const string TYPE_IsByRefLikeAttribute = "System.Runtime.CompilerServices.IsByRefLikeAttribute";
         public const string TYPE_DebuggableAttribute = "System.Diagnostics.DebuggableAttribute";
@@ -31,8 +34,6 @@
         public const string TYPE_AsyncIteratorStateMachineAttribute = "System.Runtime.CompilerServices.AsyncIteratorStateMachineAttribute";
         public const string TYPE_AsyncMethodBuilderAttribute = "System.Runtime.CompilerServices.AsyncMethodBuilderAttribute";
         public const string TYPE_IAsyncStateMachine = "System.Runtime.CompilerServices.IAsyncStateMachine";
-        public const string TYPE_IEnumerator = "System.Collections.IEnumerator";
-        public const string TYPE_IEnumerator_1 = "System.Collections.Generic.IEnumerator";
 
         public const string TYPE_ARRAY_Type = "System.Type[]";
 
