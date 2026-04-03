@@ -21,6 +21,7 @@ namespace Fody
         protected internal TypeReference _tBooleanRef;
         protected internal TypeReference _tInt32Ref;
         protected internal TypeReference _tTypeRef;
+        protected internal TypeReference _tIDisposableRef;
         protected internal TypeReference _tMethodBaseRef;
 
         protected internal MethodReference _mGetTypeFromHandleRef;
@@ -106,6 +107,7 @@ namespace Fody
             _tInt32Ref = FindAndImportType(typeof(int).FullName);
             _tBooleanRef = FindAndImportType(typeof(bool).FullName);
             _tTypeRef = FindAndImportType(typeof(Type).FullName);
+            _tIDisposableRef = FindAndImportType(typeof(IDisposable).FullName);
             _tMethodBaseRef = FindAndImportType(typeof(MethodBase).FullName);
 
             _mGetTypeFromHandleRef = _tTypeRef.GetMethod(Constants.METHOD_GetTypeFromHandle, false).ImportInto(this);

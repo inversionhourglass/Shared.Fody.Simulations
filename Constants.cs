@@ -32,6 +32,7 @@
         public const string TYPE_AsyncMethodBuilderAttribute = "System.Runtime.CompilerServices.AsyncMethodBuilderAttribute";
         public const string TYPE_IAsyncStateMachine = "System.Runtime.CompilerServices.IAsyncStateMachine";
         public const string TYPE_IEnumerator = "System.Collections.IEnumerator";
+        public const string TYPE_IEnumerator_1 = "System.Collections.Generic.IEnumerator";
 
         public const string TYPE_ARRAY_Type = "System.Type[]";
 

@@ -7,7 +7,5 @@ namespace Fody.Simulations.Types
         public PropertySimulation P_Current => PropertySimulate(Constants.PROP_Current, false);
 
         public MethodSimulation M_MoveNext => MethodSimulate(Constants.METHOD_MoveNext, true);
-
-        public MethodSimulation M_Dispose => MethodSimulate(Constants.METHOD_Dispose, true);
     }
 }
