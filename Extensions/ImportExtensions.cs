@@ -7,9 +7,6 @@ namespace Fody
     public static class ImportExtensions
     {
         private const string SCOPE_VALUE_TUPLE = "System.ValueTuple.dll";
-        private const string SCOPE_TASKS_EXTENSIONS = "System.Threading.Tasks.Extensions.dll";
-        private const string SCOPE_BCL_ASYNC_INTERFACES = "Microsoft.Bcl.AsyncInterfaces.dll";
-        private const string SCOPE_SYSTEM_MEMORY = "System.Memory.dll";
 
         public static TypeReference Import(this BaseModuleWeaver moduleWeaver, TypeReference typeRef)
         {
@@ -34,9 +31,6 @@ namespace Fody
              * 然后执行net461下的测试用例`ExecutionTupleSyntaxTest`
              */
             if (typeDef.Scope.Name != SCOPE_VALUE_TUPLE &&
-                typeDef.Scope.Name != SCOPE_TASKS_EXTENSIONS &&
-                typeDef.Scope.Name != SCOPE_BCL_ASYNC_INTERFACES &&
-                typeDef.Scope.Name != SCOPE_SYSTEM_MEMORY &&
                 moduleWeaver.TryFindTypeDefinition(typeDef.FullName, out var td))
             {
                 typeDef = td;
