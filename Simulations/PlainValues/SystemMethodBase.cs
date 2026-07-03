@@ -12,14 +12,9 @@ namespace Fody.Simulations.PlainValues
 
         public override IList<Instruction> Load()
         {
-            if (methodDef.HasGenericParameters)
-            {
-                var getCurrentMethodRef = ModuleWeaver._tMethodBaseRef
-                    .GetMethod(false, x => x.IsStatic && x.Name == "GetCurrentMethod" && x.Parameters.Count == 0 && x.ReturnType.FullName == ModuleWeaver._tMethodBaseRef.FullName)!
-                    .ImportInto(ModuleWeaver);
-                return [Instruction.Create(OpCodes.Call, getCurrentMethodRef)];
-            }
-
+            // 使用 ldtoken 直接加载目标方法的 token，不依赖运行时当前执行上下文。
+            // 对于 async/iterator 状态机，这段 IL 会被织入到 MoveNext 中，如果使用
+            // MethodBase.GetCurrentMethod() 会得到 MoveNext 而非原始方法。
             return [
                 Instruction.Create(OpCodes.Ldtoken, methodDef),
                 Instruction.Create(OpCodes.Ldtoken, methodDef.DeclaringType),
