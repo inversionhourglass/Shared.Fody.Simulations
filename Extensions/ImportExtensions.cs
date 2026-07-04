@@ -1,13 +1,12 @@
 using Mono.Cecil;
 using Mono.Cecil.Rocks;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Fody
 {
     public static class ImportExtensions
     {
-        private const string SCOPE_VALUE_TUPLE = "System.ValueTuple.dll";
-
         public static TypeReference Import(this BaseModuleWeaver moduleWeaver, TypeReference typeRef)
         {
             if (typeRef is ByReferenceType brt) return new ByReferenceType(Import(moduleWeaver, brt.ElementType));
@@ -23,18 +22,7 @@ namespace Fody
             }
 
             var typeDef = typeRef.Resolve();
-            /**
-             * todo: 真棒棒呢，曾经在#31出现过的ValueTuple的问题，当时搞得我只能把肉夹馍用到ValueTuple的地方全都改掉，现在更厉害了，
-             * 唯独net461的ValueTuple默认scope是System.ValueTuple.dll(其实不确定net462, net47等是否也是这样，这里framework版本仅测试net461和net48)，
-             * 同时ValueTuple还能从基础库mscorlib中获取到，然而如果使用mscorlib中的ValueTuple，在运行时就会报错，现在不细究底层原因了，
-             * 有的是其他头疼的问题，先跳过就完了。若要复现问题，删除下面if判断中`typeDef.Scope.Name != SCOPE_VALUE_TUPLE`部分，
-             * 然后执行net461下的测试用例`ExecutionTupleSyntaxTest`
-             */
-            if (typeDef.Scope.Name != SCOPE_VALUE_TUPLE &&
-                moduleWeaver.TryFindTypeDefinition(typeDef.FullName, out var td))
-            {
-                typeDef = td;
-            }
+            typeDef = ResolveBestTypeDefinition(moduleWeaver, typeDef);
 
             var iTypeRef = typeDef.ImportInto(moduleWeaver.ModuleDefinition);
             if (typeRef is GenericInstanceType git)
@@ -49,6 +37,72 @@ namespace Fody
             }
 
             return iTypeRef;
+        }
+
+        /// <summary>
+        /// 决定保留类型原始解析所在的 scope，还是将其重定向到目标模块引用链中找到的定义。
+        /// </summary>
+        /// <remarks>
+        /// 当目标模块已经引用了类型的原始 scope 时，优先保留原始 scope。
+        /// 这一点对 NuGet polyfill 包（如 System.Threading.Tasks.Extensions、Microsoft.Bcl.AsyncInterfaces、
+        /// System.Memory 等）至关重要：如果将其类型重定向到 facade 程序集（如 netstandard.dll），
+        /// Mono 在运行时可能无法正确解析类型转发链，从而抛出 MissingMethodException。
+        /// </remarks>
+        private static TypeDefinition ResolveBestTypeDefinition(BaseModuleWeaver moduleWeaver, TypeDefinition original)
+        {
+            // 目标模块自身定义的类型不需要重定向。
+            if (original.Module == moduleWeaver.ModuleDefinition)
+                return original;
+
+            var originalScopeName = original.Scope?.Name;
+            if (string.IsNullOrEmpty(originalScopeName))
+                return original;
+
+            var normalizedOriginalScope = NormalizeAssemblyName(originalScopeName);
+
+            // 如果目标模块已经引用了原始程序集，则保留该 scope。
+            var targetReferencesOriginalScope = moduleWeaver.ModuleDefinition.AssemblyReferences
+                .Any(ar => NormalizeAssemblyName(ar.Name) == normalizedOriginalScope);
+            if (targetReferencesOriginalScope)
+                return original;
+
+            if (!moduleWeaver.TryFindTypeDefinition(original.FullName, out var candidate))
+                return original;
+
+            // 不要重定向到纯 facade 程序集。facade 只包含类型转发，依赖运行时解析转发链，
+            // 而 Mono 对此支持不完整。
+            if (IsFacadeAssembly(candidate.Module.Assembly))
+                return original;
+
+            return candidate;
+        }
+
+        private static bool IsFacadeAssembly(AssemblyDefinition assembly)
+        {
+            if (assembly == null) return false;
+
+            var module = assembly.MainModule;
+            if (!module.HasExportedTypes) return false;
+
+            // 纯 facade 程序集只包含导出的类型转发，没有真正的实现类型（只有必需的 <Module>）。
+            foreach (var type in module.Types)
+            {
+                if (type.FullName == "<Module>") continue;
+                return false;
+            }
+
+            return true;
+        }
+
+        private static string NormalizeAssemblyName(string? name)
+        {
+            if (name == null || name.Length == 0) return string.Empty;
+            if (name.EndsWith(".dll", System.StringComparison.OrdinalIgnoreCase) ||
+                name.EndsWith(".exe", System.StringComparison.OrdinalIgnoreCase))
+            {
+                return name.Substring(0, name.Length - 4);
+            }
+            return name;
         }
 
         public static MethodReference Import(this BaseModuleWeaver moduleWeaver, MethodReference methodRef)
